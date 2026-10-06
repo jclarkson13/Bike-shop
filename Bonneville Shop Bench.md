@@ -2,11 +2,33 @@
 
 1976 Triumph Bonneville T140V
 
+## Thought for the garage
+
+## Needs attention
+
+## Pre-ride check
+
+## Low stock
+
+## Open punchlist
+
+## Latest chat
+
 Attached photoPhoto attached for the next question
+
+## Odometer
 
 ## Add service entry
 
+## Diagnosis
+
+Saved with the service history. The mechanic reads these so it doesn't suggest what you've already ruled out.
+
 ## What's due
+
+Time intervals (months)
+
+Service can also come due by date, even if the bike hasn't moved. Set months for each item, or 0 for none.
 
 ## History
 
@@ -57,12 +79,12 @@ Read from the plate on your bike: Triumph Motor Cycles (Meriden) Ltd, model T140
 
 ## Back up your data
 
-Your log, inventory, chats and to-dos live in this browser only. Save a backup file now and then, and restore it on a new phone or after clearing data.
+Your log, inventory, chats and punchlist live in this browser only. Save a backup file now and then, and restore it on a new phone or after clearing data.
 
 ## Add item
 
 ## On hand
 
-## Add to the punch list
+## Add to the punchlist
 
 ## Shopping list
