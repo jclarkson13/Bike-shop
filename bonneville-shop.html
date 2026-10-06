@@ -31,6 +31,11 @@ section[hidden]{display:none}
 textarea,input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink);font:inherit}
 .btn{background:var(--green);color:var(--onacc);border:0;border-radius:4px;padding:10px 16px;font:600 17px "Barlow Condensed",sans-serif;white-space:nowrap}
 .btn:disabled{opacity:.5}
+.fld{position:relative}
+.row>.fld{flex:1;min-width:0}
+.fld input,.fld textarea{padding-right:48px}
+.fld .mic{position:absolute;right:2px;top:0;width:44px;height:44px;min-height:0;padding:0;border:0;border-radius:4px;background:none;color:var(--mute);font-size:19px;line-height:1}
+.fld .mic.on{background:var(--gold);color:var(--onacc)}
 .mic{padding:10px 12px}.mic[hidden]{display:none}.mic.on{background:var(--gold);color:var(--onacc)}
 .tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin:8px 0}
 .tab{flex:none;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:4px 4px 0 0;padding:6px 12px;font:600 16px "Barlow Condensed",sans-serif}
@@ -47,6 +52,8 @@ mark{background:var(--gold);color:var(--onacc);border-radius:2px;padding:0 1px}
 header{position:relative}#th{position:absolute;right:12px;top:14px;font-size:13px}
 code{background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:0 4px;font-size:.92em}
 .btn[hidden]{display:none}
+body:not(.zen) .zen{display:none!important}
+#zb{position:absolute;right:12px;top:46px;font-size:13px}
 .toast{position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;z-index:5}
 .toast[hidden]{display:none}.toast .link{color:var(--gold);font-weight:600}
 *{-webkit-tap-highlight-color:transparent}
@@ -77,21 +84,23 @@ small,.note{color:var(--mute);font-size:13px}
 </style>
 </head>
 <body>
-<header><button class="link" id="th" aria-label="Change theme">Theme: Auto</button><h1>Bonneville Shop Bench</h1><p>1976 Triumph Bonneville T140V</p></header>
+<header><button class="link" id="th" aria-label="Change theme">Theme: Auto</button><button class="link" id="zb" aria-label="Turn Zen extras on or off">Zen: On</button><h1>Bonneville Shop Bench</h1><p>1976 Triumph Bonneville T140V</p></header>
 <nav role="tablist" aria-label="Sections">
 <button role="tab" aria-selected="true" data-t="home"><span class="ic" aria-hidden="true">🏠</span><span>Home</span></button>
 <button role="tab" aria-selected="false" data-t="chat"><span class="ic" aria-hidden="true">🔧</span><span>Mechanic</span></button>
 <button role="tab" aria-selected="false" data-t="log"><span class="ic" aria-hidden="true">📒</span><span>Log</span></button>
 <button role="tab" aria-selected="false" data-t="parts"><span class="ic" aria-hidden="true">📦</span><span>Inventory</span></button>
-<button role="tab" aria-selected="false" data-t="todo"><span class="ic" aria-hidden="true">✅</span><span>To-do</span></button>
+<button role="tab" aria-selected="false" data-t="todo"><span class="ic" aria-hidden="true">✅</span><span>Punchlist</span></button>
 <button role="tab" aria-selected="false" data-t="specs"><span class="ic" aria-hidden="true">📏</span><span>Specs</span></button>
 </nav>
 <main>
 <section id="home">
 <div class="chips" id="hq"></div>
+<h2 class="zen">Thought for the garage</h2><div class="card zen" id="hzen"></div>
 <h2>Needs attention</h2><div class="card" id="hdue"></div>
+<h2>Pre-ride check</h2><div class="card" id="hpre"></div>
 <h2>Low stock</h2><div class="card" id="hlow"></div>
-<h2>Open to-dos</h2><div class="card" id="htd"></div>
+<h2>Open punchlist</h2><div class="card" id="htd"></div>
 <h2>Latest chat</h2><div class="card" id="hchat"></div>
 </section>
 
@@ -104,21 +113,34 @@ small,.note{color:var(--mute);font-size:13px}
 <div class="msgs" id="msgs"></div>
 <div class="trow" id="pp" hidden><img id="pimg" alt="Attached photo" style="height:56px;border-radius:4px"><span class="note" style="flex:1">Photo attached for the next question</span><button class="link" id="prm">Remove</button></div>
 <input type="file" id="phf" hidden>
-<div class="row" id="comp"><textarea id="q" rows="2" placeholder="Describe the problem or ask how to do a job"></textarea><button class="btn ph" id="pb" aria-label="Attach a photo" hidden>📷</button><button class="btn mic" data-for="q" aria-label="Dictate" hidden>🎤</button><button class="btn" id="stop" hidden>Stop</button><button class="btn" id="send">Ask</button></div>
+<div class="row" id="comp"><div class="fld"><textarea id="q" rows="2" placeholder="Describe the problem or ask how to do a job"></textarea><button class="mic" data-for="q" aria-label="Dictate" hidden>🎤</button></div><button class="btn ph" id="pb" aria-label="Attach a photo" hidden>📷</button><button class="btn" id="stop" hidden>Stop</button><button class="btn" id="send">Ask</button></div>
 <p class="note" id="chatnote"></p>
 </section>
 
 <section id="log" hidden>
+<h2>Odometer</h2>
+<div class="card"><div class="row"><input type="number" id="od" inputmode="decimal" step="0.1" placeholder="Current reading" aria-label="Current odometer reading"><button class="btn" id="odsave">Update</button></div><p class="note" id="odnote" style="margin:8px 0 0" role="status"></p></div>
 <h2>Add service entry</h2>
 <div class="card">
-<div class="grid"><input type="date" id="ld" aria-label="Date"><input type="number" id="lm" inputmode="numeric" placeholder="Odometer" aria-label="Odometer"></div>
+<div class="grid"><input type="date" id="ld" aria-label="Date"><input type="number" id="lm" inputmode="decimal" step="0.1" placeholder="Odometer" aria-label="Odometer"></div>
 <select id="lt" aria-label="Job" style="margin-bottom:8px"></select><p class="note" id="lhint" style="margin:-2px 0 8px"></p>
 <div class="grid"><select id="lu" aria-label="Used from inventory"></select><input type="number" id="la" inputmode="decimal" step="any" placeholder="Amount used" aria-label="Amount used"></div>
-<div class="row" style="margin-bottom:8px"><input id="ln" placeholder="Notes: parts, oil brand, what you found"><button class="btn mic" data-for="ln" aria-label="Dictate" hidden>🎤</button></div>
+<div class="row" style="margin-bottom:8px"><div class="fld"><input id="ln" placeholder="Notes: parts, oil brand, what you found"><button class="mic" data-for="ln" aria-label="Dictate" hidden>🎤</button></div></div>
+<div class="row zen" style="margin-bottom:8px"><div class="fld"><input id="lr" placeholder="Reflection (optional): how did it go, what next time?"><button class="mic" data-for="lr" aria-label="Dictate" hidden>🎤</button></div></div>
 <button class="btn" id="ladd">Save entry</button>
+</div>
+<h2 class="zen">Diagnosis</h2>
+<div class="card zen">
+<div class="row" style="margin-bottom:8px"><div class="fld"><input id="dsym" placeholder="Symptom: what is it doing?"><button class="mic" data-for="dsym" aria-label="Dictate" hidden>🎤</button></div></div>
+<div class="row" style="margin-bottom:8px"><div class="fld"><input id="dhyp" placeholder="Suspect: what do you think it is?"><button class="mic" data-for="dhyp" aria-label="Dictate" hidden>🎤</button></div></div>
+<div class="row" style="margin-bottom:8px"><div class="fld"><input id="dtest" placeholder="Test: what did you check?"><button class="mic" data-for="dtest" aria-label="Dictate" hidden>🎤</button></div></div>
+<div class="row" style="margin-bottom:8px"><div class="fld"><input id="dres" placeholder="Result: what did you find?"><button class="mic" data-for="dres" aria-label="Dictate" hidden>🎤</button></div></div>
+<button class="btn" id="dadd">Save diagnosis</button>
+<p class="note" style="margin:8px 0 0">Saved with the service history. The mechanic reads these so it doesn't suggest what you've already ruled out.</p>
 </div>
 <h2>What's due</h2>
 <div class="card" id="due"></div>
+<details class="card" id="tmd"><summary>Time intervals (months)</summary><p class="note">Service can also come due by date, even if the bike hasn't moved. Set months for each item, or 0 for none.</p><div id="tmed"></div></details>
 <h2>History</h2>
 <div id="hist"></div>
 <p class="note">Entries are saved in this browser only. Intervals are typical figures; check them against your workshop manual.</p>
@@ -170,9 +192,10 @@ small,.note{color:var(--mute);font-size:13px}
 <div class="card wrap" id="mine"></div>
 <h2>Back up your data</h2>
 <div class="card">
-<p class="note" style="margin-top:0">Your log, inventory, chats and to-dos live in this browser only. Save a backup file now and then, and restore it on a new phone or after clearing data.</p>
+<p class="note" style="margin-top:0">Your log, inventory, chats and punchlist live in this browser only. Save a backup file now and then, and restore it on a new phone or after clearing data.</p>
 <div class="row"><button class="btn" id="bk">Save backup</button><button class="btn" id="rs">Restore backup</button></div>
 <input type="file" id="bf" accept=".json,application/json" hidden>
+<p class="note" id="bklast"></p>
 <p class="note" id="bmsg" role="status"></p>
 <div id="bconf" hidden><button class="btn" id="bok">Replace my data with this backup</button></div>
 </div>
@@ -191,11 +214,11 @@ small,.note{color:var(--mute);font-size:13px}
 <div id="plist"></div>
 </section>
 <section id="todo" hidden>
-<h2>Add to the punch list</h2>
+<h2>Add to the punchlist</h2>
 <div class="card">
-<div class="row" style="margin-bottom:8px"><input id="tn" placeholder="Task, e.g. Replace rear brake shoes"><button class="btn mic" data-for="tn" aria-label="Dictate" hidden>🎤</button></div>
+<div class="row" style="margin-bottom:8px"><div class="fld"><input id="tn" placeholder="Task, e.g. Replace rear brake shoes"><button class="mic" data-for="tn" aria-label="Dictate" hidden>🎤</button></div></div>
 <input id="ts" placeholder="Supplies needed, e.g. shoes, brake cleaner" style="margin-bottom:8px">
-<div class="row" style="margin-bottom:8px"><input id="tp" placeholder="Plan or notes (optional)"><button class="btn mic" data-for="tp" aria-label="Dictate" hidden>🎤</button></div>
+<div class="row" style="margin-bottom:8px"><div class="fld"><input id="tp" placeholder="Plan or notes (optional)"><button class="mic" data-for="tp" aria-label="Dictate" hidden>🎤</button></div></div>
 <button class="btn" id="tadd">Add task</button>
 </div>
 <div class="row" style="margin:12px 0 4px"><button class="chip" id="tf-open" aria-pressed="true">Open</button><button class="chip" id="tf-done" aria-pressed="false">Done</button><button class="chip" id="tf-all" aria-pressed="false">All</button></div>
@@ -208,7 +231,7 @@ small,.note{color:var(--mute);font-size:13px}
 <div class="toast" id="toast" role="status" hidden></div>
 <script>
 (function(){
-var SCHED=[["Engine oil and filter",1500],["Chain lube and adjust",500],["Valve clearance check",3000],["Points and ignition timing",3000],["Spark plugs",3000],["Air filter",3000],["Brake and cable check",1000],["Tire pressure and condition",0]];
+var SCHED=[["Engine oil and filter",1500],["Chain lube and adjust",500],["Valve clearance check",3000],["Points and ignition timing",3000],["Spark plugs",3000],["Air filter",3000],["Brake and cable check",1000],["Tire pressure and condition",0],["Brake fluid change",0],["Battery check and charge",0]];
 var CHIPS=["Won't start, kicks back","Oil leaking from the engine","Idle is rough and hunting","Walk me through a valve check","Set points and timing","Lucas electrics keep failing"];
 var lg=[],sp=[],hist=[];
 function ld(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
@@ -219,6 +242,10 @@ function esc(s){var d=document.createElement("div");d.textContent=s;return d.inn
 
 var TH=ld("bn_theme","auto");
 function applyTheme(){var r=document.documentElement;if(TH==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",TH);$("th").textContent=TH==="auto"?"Theme: Auto":TH==="light"?"Theme: Light":"Theme: Dark"}
+// Zen extras: one switch. Everything Zen-related carries class "zen" (hidden when off) or checks ZEN.
+var ZEN=ld("bn_zen",true);
+function applyZen(){document.body.classList.toggle("zen",ZEN);$("zb").textContent="Zen: "+(ZEN?"On":"Off");$("zb").setAttribute("aria-pressed",ZEN)}
+$("zb").onclick=function(){ZEN=!ZEN;sv("bn_zen",ZEN);applyZen()};applyZen();
 $("th").onclick=function(){TH=TH==="auto"?"light":TH==="light"?"dark":"auto";sv("bn_theme",TH);applyTheme()};applyTheme();
 var tt=null;
 function undo(lbl,fn){var t=$("toast");t.innerHTML="";var sp2=document.createElement("span");sp2.textContent="Deleted "+lbl+".";var b=document.createElement("button");b.className="link";b.textContent="Undo";b.onclick=function(){fn();t.hidden=true;clearTimeout(tt)};t.appendChild(sp2);t.appendChild(b);t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true},7000)}
@@ -244,19 +271,20 @@ b.classList.add("on");b.setAttribute("aria-pressed","true");
 try{rec.start()}catch(e){rec=null;b.classList.remove("on")}}})}
 
 
-// To-do punch list
+// Punchlist
 var td=ld("bn_todo",[]),tfl="open";
 function renderTodo(){
 ["open","done","all"].forEach(function(k){$("tf-"+k).setAttribute("aria-pressed",k===tfl)});
 var rows=td.map(function(t,i){return{t:t,i:i}}).filter(function(r){return tfl==="all"||(tfl==="done")===!!r.t.done});
 $("tlist").innerHTML=rows.length?rows.map(function(r){var t=r.t;
 return '<div class="card"><div class="td'+(t.done?" done":"")+'"><input type="checkbox" data-c="'+r.i+'" aria-label="Mark done"'+(t.done?" checked":"")+'><div style="flex:1"><div class="tt">'+esc(t.title)+'</div>'
-+(t.sup?'<p class="sub"><b>Supplies:</b> '+esc(t.sup)+'</p>':'')+(t.plan?'<p class="sub"><b>Plan:</b> '+esc(t.plan)+'</p>':'')+(t.done?'<button class="link" data-l="'+r.i+'">Log it in service log</button>':'')+'</div><button class="x" data-x="'+r.i+'" aria-label="Delete task">×</button></div></div>'}).join(""):'<p class="note">'+(td.length?"Nothing in this view.":"Nothing on the list yet. Add the jobs you're planning.")+'</p>';
++(t.sup?'<p class="sub"><b>Supplies:</b> '+esc(t.sup)+'</p>':'')+(t.plan?'<p class="sub"><b>Plan:</b> '+esc(t.plan)+'</p>':'')+(t.done?'<button class="link" data-l="'+r.i+'">Log it in service log</button>':'<button class="link zen" data-g="'+r.i+'">Gumption check</button>')+'</div><button class="x" data-x="'+r.i+'" aria-label="Delete task">×</button></div></div>'}).join(""):'<p class="note">'+(td.length?"Nothing in this view.":"Nothing on the list yet. Add the jobs you're planning.")+'</p>';
 var sup=td.filter(function(t){return !t.done&&t.sup}).map(function(t){return '<div class="due"><span>'+esc(t.sup)+'</span><small>'+esc(t.title)+'</small></div>'}).join("");
 $("tshop").innerHTML=sup||'<span class="note">Supplies you list on open tasks show up here.</span>';
 function bind(a,fn){$("tlist").querySelectorAll("["+a+"]").forEach(function(b){b.onclick=function(){fn(+b.getAttribute(a));sv("bn_todo",td);renderTodo()}})}
 bind("data-c",function(i){td[i].done=!td[i].done});
 bind("data-x",function(i){var it=td.splice(i,1)[0];undo("task",function(){td.splice(i,0,it);sv("bn_todo",td);renderTodo()})});
+$("tlist").querySelectorAll("[data-g]").forEach(function(b){b.onclick=function(){var t=td[+b.dataset.g];go("chat");newT();cur.title="Gumption: "+t.title.slice(0,22);$("q").value=gump(t.title+(t.sup?" (supplies: "+t.sup+")":"")+(t.plan?" - plan: "+t.plan:""));ask()}});
 $("tlist").querySelectorAll("[data-l]").forEach(function(b){b.onclick=function(){var t=td[+b.dataset.l];document.querySelector('nav [data-t="log"]').click();$("lt").value="Other repair";$("ln").value=t.title+(t.plan?" - "+t.plan:"");window.scrollTo(0,0);$("lm").focus()}})}
 ["open","done","all"].forEach(function(k){$("tf-"+k).onclick=function(){tfl=k;renderTodo()}});
 $("tadd").onclick=function(){var n=$("tn").value.trim();if(!n){$("tn").focus();return}
@@ -268,22 +296,70 @@ h.textContent="";if(!last)return;
 h.appendChild(document.createTextNode("Last time: "+(last.date||"")+" at "+last.miles+" mi. "));
 if(last.note){var b=document.createElement("button");b.className="link";b.textContent="Use its notes";b.onclick=function(){$("ln").value=last.note};h.appendChild(b)}}
 $("lt").onchange=lhint;
+// Time intervals, backup reminder, pre-ride check
+var TMDEF={"Engine oil and filter":12,"Chain lube and adjust":3,"Brake and cable check":12,"Tire pressure and condition":1,"Brake fluid change":24,"Battery check and charge":3};
+var tm=ld("bn_tm",TMDEF);
+function months(t){return tm[t]>0?+tm[t]:0}
+function today(){return new Date().toISOString().slice(0,10)}
+function fdays(n){var a=Math.abs(n);return a>=60?Math.round(a/30)+" months":a+" day"+(a===1?"":"s")}
+function dueInfo(s,cur){var r={mi:null,days:null,win:7,urg:null,rec:false},all=lg.filter(function(e){return e.task===s[0]});
+if(!all.length)return r;r.rec=true;var fr=[];
+if(s[1]){var lm=all.reduce(function(m,e){return Math.max(m,+e.miles||0)},0);r.mi=Math.round((lm+s[1]-cur)*10)/10;fr.push(r.mi/s[1])}
+var mo=months(s[0]);
+if(mo){var ds=all.map(function(e){return e.date||""}).sort().pop(),d=ds?new Date(ds+"T00:00:00"):null;
+if(d&&!isNaN(d)){d.setMonth(d.getMonth()+mo);var t0=new Date();t0.setHours(0,0,0,0);r.days=Math.round((d-t0)/864e5);r.win=Math.max(7,Math.min(30,Math.round(mo*6)));fr.push(r.days/(mo*30))}}
+r.urg=fr.length?Math.min.apply(null,fr):null;return r}
+function tagMi(v){return v>=0?'<span class="tag ok">'+fm(v)+' mi left</span>':'<span class="tag late">'+fm(-v)+' mi over</span>'}
+function tagDays(v,late){return v>=0?'<span class="tag '+(late?"late":"ok")+'">'+(late?"due in ":"")+fdays(v)+(late?"":" left")+'</span>':'<span class="tag late">'+fdays(v)+' over</span>'}
+function renderTm(){$("tmed").innerHTML=SCHED.map(function(s,i){return '<div class="due"><span>'+esc(s[0])+'</span><input type="number" inputmode="numeric" min="0" step="1" data-tm="'+i+'" value="'+months(s[0])+'" aria-label="Months for '+esc(s[0])+'" style="width:72px"></div>'}).join("");
+$("tmed").querySelectorAll("[data-tm]").forEach(function(b){b.onchange=function(){var v=parseInt(b.value,10);tm[SCHED[+b.dataset.tm][0]]=v>0?v:0;sv("bn_tm",tm);renderLog();renderHome()}})}
+var bkd=ld("bn_bkdate",""),bks=ld("bn_bksnooze","");
+function renderBk(){$("bklast").textContent=bkd?"Last backup: "+bkd+".":"No backup saved yet."}
+function markBk(){bkd=today();sv("bn_bkdate",bkd);renderBk();renderHome()}
+var PRE=[["Tires","Pressure, tread, cracks, nails"],["Oil","Level in the tank, no new leaks"],["Fuel","Enough gas, no leaks at the taps or lines"],["Chain","Tension and lube"],["Brakes","Lever and pedal feel, pads, fluid level"],["Controls","Throttle snaps shut, clutch and cables move smoothly"],["Lights and horn","Head, tail, brake, signals, horn"],["Fasteners","Axle nuts, pins and clips; anything loose or missing"],["Steering and suspension","Bars turn freely, forks and shocks move smoothly"]];
+var pre=null,lastPre=ld("bn_pre",null);
+function renderPre(){var el=$("hpre");
+if(!pre){el.innerHTML='<div class="due" style="border:0"><span>'+(lastPre?"Last check: "+esc(lastPre.date)+(lastPre.issues?" ("+lastPre.issues+" issue"+(lastPre.issues>1?"s":"")+" flagged)":", all clear"):"No check yet.")+'</span><button class="link" id="pstart">Start</button></div>';
+$("pstart").onclick=function(){pre={ok:{},issue:{}};renderPre()};return}
+var done=0;
+el.innerHTML=PRE.map(function(x,i){var f=pre.issue[i],c=pre.ok[i]||f;if(c)done++;
+return '<div class="td" style="padding:6px 0;border-bottom:1px solid var(--line)"><input type="checkbox" data-p="'+i+'" aria-label="'+esc(x[0])+' is OK"'+(c?" checked":"")+(f?" disabled":"")+'><div style="flex:1"><div class="tt">'+esc(x[0])+'</div><small>'+(f?"Added to punchlist":esc(x[1]))+'</small></div>'+(f?'':'<button class="link" data-pi="'+i+'">Issue</button>')+'</div>'}).join("")
++'<div class="due" style="border:0;align-items:center"><small>'+done+' of '+PRE.length+' checked</small><span><button class="link" id="pcan">Cancel</button><button class="btn" id="pfin"'+(done<PRE.length?" disabled":"")+'>Finish</button></span></div>';
+el.querySelectorAll("[data-p]").forEach(function(b){b.onchange=function(){pre.ok[+b.dataset.p]=b.checked;renderPre()}});
+el.querySelectorAll("[data-pi]").forEach(function(b){b.onclick=function(){var i=+b.dataset.pi;td.unshift({title:"Pre-ride: "+PRE[i][0]+" needs attention",sup:"",plan:"",done:false});sv("bn_todo",td);pre.issue[i]=true;renderTodo();renderPre()}});
+$("pcan").onclick=function(){pre=null;renderPre()};
+$("pfin").onclick=function(){lastPre={date:today(),issues:Object.keys(pre.issue).length};sv("bn_pre",lastPre);pre=null;renderHome()}}
 // Home summary
 function go(t){document.querySelector('nav [data-t="'+t+'"]').click()}
+var ZT=["Being stuck is part of the job, not a failure. Step back and ask what you have been assuming.",
+"Hurry is the quickest way to strip a thread. If you feel rushed, slow down.",
+"Quality lives in small things: clean threads, the right tool, a fastener seated properly.",
+"Write down what you try. By the end of a long afternoon, memory is a poor witness.",
+"A problem that won't give often has a wrong assumption at the bottom. List yours.",
+"Change one thing at a time, then watch what happens.",
+"Listen to the bike today. You are the one who knows what normal sounds like.",
+"A job done calmly and well pays you back before the engine even fires.",
+"If your patience is running out, take a break before a mistake makes you take one.",
+"Rider and machine are one system. Check both before a ride.",
+"Don't hunt for the perfect answer. Find the next small test you can run.",
+"Gather everything before you start. Interruptions are what drain momentum."],zoff=0;
 function renderHome(){
 var cur0=odo(),dueL=[],none=0;
-SCHED.forEach(function(x){if(!x[1])return;
-var last=lg.filter(function(e){return e.task===x[0]}).sort(function(a,b){return b.miles-a.miles})[0];
-if(!last){none++;return}
-var left=last.miles+x[1]-cur0;if(left<=x[1]*0.2)dueL.push({n:x[0],left:left})});
-dueL.sort(function(a,b){return a.left-b.left});
-var lastE=lg.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"")})[0];
-var h=(lg.length?'<div class="due"><span>Odometer</span><strong>'+cur0+' mi</strong></div>':'');
-h+=dueL.map(function(d){return '<div class="due"><span>'+esc(d.n)+'</span>'+(d.left<0?'<span class="tag late">'+(-d.left)+' mi over</span>':'<span class="tag late">due in '+d.left+' mi</span>')+'</div>'}).join("");
+SCHED.forEach(function(x){if(!x[1]&&!months(x[0]))return;var r=dueInfo(x,cur0);if(!r.rec){none++;return}
+var mD=r.mi!==null&&r.mi<=x[1]*0.2,tD=r.days!==null&&r.days<=r.win;
+if(mD||tD)dueL.push({n:x[0],mi:mD?r.mi:null,days:tD?r.days:null,urg:r.urg})});
+dueL.sort(function(a,b){return a.urg-b.urg});
+var lastE=lg.filter(function(e){return e.task!=="Diagnosis"}).sort(function(a,b){return (b.date||"").localeCompare(a.date||"")})[0];
+var h='<div class="due"><span>Odometer'+(od.date?' <small>as of '+esc(od.date)+'</small>':'')+'</span><span><strong>'+fm(cur0,1)+' mi</strong> <button class="link" id="hodo">Update</button></span></div>';
+h+=dueL.map(function(d){var t=[];if(d.mi!==null)t.push(d.mi<0?'<span class="tag late">'+fm(-d.mi)+' mi over</span>':'<span class="tag late">due in '+fm(d.mi)+' mi</span>');if(d.days!==null)t.push(tagDays(d.days,true));return '<div class="due"><span>'+esc(d.n)+'</span><span style="text-align:right">'+t.join(" · ")+'</span></div>'}).join("");
 if(!dueL.length)h+='<div class="due"><span>'+(lg.length?"Nothing due or overdue.":"Log a service to start tracking what's due.")+'</span></div>';
 if(none&&lg.length)h+='<div class="due"><span class="note">'+none+' schedule item'+(none>1?"s have":" has")+' no record yet.</span></div>';
 if(lastE)h+='<div class="due"><span class="note">Last service: '+esc(lastE.task)+', '+esc(lastE.date||"")+'</span></div>';
+var hasD=lg.length||pt.length||td.length||th.some(function(t){return t.msgs.length}),bage=bkd?Math.floor((Date.now()-new Date(bkd+"T00:00:00"))/864e5):null;
+if(hasD&&(bage===null||bage>30)&&(!bks||today()>=bks))h+='<div class="due"><span>'+(bage===null?"No backup yet.":"Last backup "+bage+" days ago.")+'</span><span><button class="link" id="hbk">Back up</button><button class="link" id="hbks">Later</button></span></div>';
 $("hdue").innerHTML=h;
+if($("hbk")){$("hbk").onclick=function(){go("specs");$("bk").scrollIntoView()};$("hbks").onclick=function(){bks=new Date(Date.now()+7*864e5).toISOString().slice(0,10);sv("bn_bksnooze",bks);renderHome()}}
+renderPre();$("hodo").onclick=function(){go("log");$("od").focus()};
 var low=pt.filter(function(p){return p.min>0&&p.qty<=p.min});
 $("hlow").innerHTML=low.length?low.map(function(p){var u=p.unit&&p.unit!=="ea"?" "+p.unit:"";return '<div class="due"><span>'+esc(p.name)+'</span><span class="tag late">'+fmt(p.qty)+u+' left</span></div>'}).join(""):'<span class="note">'+(pt.length?"Stock looks fine.":"No inventory yet.")+'</span>';
 var open=td.filter(function(t){return !t.done});
@@ -291,8 +367,9 @@ $("htd").innerHTML=open.length?open.slice(0,4).map(function(t){return '<div clas
 var lt=th.filter(function(t){return t.msgs.length}).sort(function(a,b){return b.t-a.t})[0];
 $("hchat").innerHTML=lt?'<div class="due" style="border:0"><span>'+esc(lt.title||"New chat")+'</span><button class="link" id="hcont">Continue</button></div>':'<span class="note">No chats yet.</span>';
 if(lt)$("hcont").onclick=function(){go("chat");openT(lt)};
+$("hzen").innerHTML='<div class="due" style="border:0"><span>'+esc(ZT[(Math.floor(Date.now()/864e5)+zoff)%ZT.length])+'</span><button class="link" id="hzn">Another</button></div>';$("hzn").onclick=function(){zoff++;renderHome()};
 $("hq").innerHTML="";
-[["Ask the mechanic","chat"],["Log a service","log"],["Add a to-do","todo"],["Check inventory","parts"],["Specs","specs"]].forEach(function(q){var b=document.createElement("button");b.className="chip";b.textContent=q[0];b.onclick=function(){go(q[1])};$("hq").appendChild(b)})}
+[["Ask the mechanic","chat"],["Log a service","log"],["Add to punchlist","todo"],["Check inventory","parts"],["Specs","specs"]].forEach(function(q){var b=document.createElement("button");b.className="chip";b.textContent=q[0];b.onclick=function(){go(q[1])};$("hq").appendChild(b)})}
 // Unit converter
 var CV={Torque:{"ft-lb":1.3558179,"in-lb":0.1129848,"Nm":1,"kgf-m":9.80665},
 Length:{"in":25.4,"mm":1,"thou":0.0254,"cm":10,"ft":304.8},
@@ -316,13 +393,13 @@ $("cvc").onchange=cvFill;$("cvu").onchange=cvRun;$("cvv").oninput=cvRun;cvFill()
 
 // Backup
 var pend=null;
-function snap(){return JSON.stringify({app:"bonneville-shop",v:1,saved:new Date().toISOString(),log:lg,specs:sp,threads:th,parts:pt,todo:td})}
+function snap(){return JSON.stringify({app:"bonneville-shop",v:1,saved:new Date().toISOString(),log:lg,odo:od,tm:tm,specs:sp,threads:th,parts:pt,todo:td})}
 function bmsg(t){$("bmsg").textContent=t}
 $("bk").onclick=async function(){
 var d=null;try{d=await claude.use("downloads")}catch(e){}
 var fname="bonneville-backup-"+new Date().toISOString().slice(0,10)+".json";
-if(!d){try{var u=URL.createObjectURL(new Blob([snap()],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download=fname;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);bmsg("Backup downloaded. Check your Downloads folder.")}catch(e){bmsg("Couldn't save the backup in this browser.")}return}
-try{await d.save({filename:fname,data:snap()});bmsg("Backup saved.")}
+if(!d){try{var u=URL.createObjectURL(new Blob([snap()],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download=fname;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);bmsg("Backup downloaded. Check your Downloads folder.");markBk()}catch(e){bmsg("Couldn't save the backup in this browser.")}return}
+try{await d.save({filename:fname,data:snap()});bmsg("Backup saved.");markBk()}
 catch(e){bmsg(e&&e.code==="declined"?"Backup cancelled.":"Couldn't save the backup. Try again.")}};
 $("rs").onclick=function(){$("bf").click()};
 $("bf").onchange=function(){var f=$("bf").files[0];if(!f)return;
@@ -332,9 +409,11 @@ pend=o;bmsg("Backup from "+(o.saved||"").slice(0,10)+": "+o.log.length+" log ent
 catch(e){pend=null;$("bconf").hidden=true;bmsg("That file isn't a Bonneville Shop backup.")}};
 r.readAsText(f);$("bf").value=""};
 $("bok").onclick=function(){if(!pend)return;var o=pend;pend=null;
+if(o.odo&&typeof o.odo.miles==="number"){od=o.odo;sv("bn_odo",od)}
+if(o.tm&&typeof o.tm==="object"){tm=o.tm;sv("bn_tm",tm);renderTm()}
 lg=o.log;sp=Array.isArray(o.specs)?o.specs:[];pt=Array.isArray(o.parts)?o.parts:[];td=Array.isArray(o.todo)?o.todo:[];th=o.threads;
 sv("bn_log",lg);sv("bn_specs",sp);sv("bn_parts",pt);sv("bn_todo",td);
-$("bconf").hidden=true;renderLog();renderSpecs();renderParts();renderTodo();lhint();
+$("bconf").hidden=true;renderOdo();renderLog();renderSpecs();renderParts();renderTodo();lhint();
 if(th.length)openT(th[0]);else newT();bmsg("Backup restored.")};
 
 // Inventory
@@ -370,6 +449,9 @@ $("pf").oninput=renderParts;
 
 // Chat
 CHIPS.forEach(function(c){var b=document.createElement("button");b.className="chip";b.textContent=c;b.onclick=function(){$("q").value=c;$("q").focus()};$("chips").appendChild(b)});
+function gump(job){return "Gumption check before I start: "+job+". Look at my inventory and punchlist. What parts, tools or fluids am I missing, what is likely to go wrong on this job (seized or stripped fasteners, setup mistakes, rushing), and what should I do or buy first so I don't stall halfway through?"}
+[["🧭 I'm stuck",function(){var t=$("q").value.trim();$("q").value="I'm stuck. Help me step back: ask me what I've tried so far, list the assumptions I might be making, and suggest a different way to look at the problem."+(t?" Here's the situation: "+t:"");ask()}],
+["🛠 Gumption check",function(){var t=$("q").value.trim();$("q").value=gump(t||"the job I'm about to start");ask()}]].forEach(function(z){var b=document.createElement("button");b.className="chip zen";b.textContent=z[0];b.onclick=z[1];$("chips").insertBefore(b,$("chips").firstChild)});
 var sample=null;
 (async function(){try{sample=await claude.use("sample")}catch(e){}
 if(!sample){$("send").disabled=true;$("chatnote").textContent="The mechanic chat is available when you open this page in Claude."}
@@ -426,16 +508,16 @@ if(!armed){armed=true;$("cdel").textContent="Tap again to delete";return}
 armed=false;th.splice(th.indexOf(cur),1);
 if(th.length){openT(th[0])}else{newT()}};
 function sys(){
-var recent=lg.slice(-6).map(function(e){return e.date+" at "+e.miles+" mi: "+e.task+(e.note?" ("+e.note+")":"")}).join("; ");
+var recent=lg.slice(-6).map(function(e){return e.date+" at "+e.miles+" mi: "+e.task+(e.note?" ("+e.note.replace(/\n/g," | ")+")":"")+(ZEN&&e.refl?" [owner reflection: "+e.refl+"]":"")}).join("; ");
 var stock=pt.map(function(p){var u=p.unit||"ea";return p.qty+(u==="ea"?" x ":" "+u+" of ")+p.name+" ("+(p.cat||"Other")+")"}).join("; ");
 var open=td.filter(function(t){return !t.done}).map(function(t){return t.title+(t.sup?" (needs: "+t.sup+")":"")+(t.plan?" [plan: "+t.plan+"]":"")}).join("; ");
-return "You are a master motorcycle shop mechanic with decades on British twins, specializing in the 1976 Triumph Bonneville T140V (744cc, Lucas electrics, Amal Concentric carbs, points ignition, oil-in-frame). The owner is working on their own bike. Be practical and direct like a good shop foreman: diagnose by asking one or two pointed questions, then give a ranked list of likely causes, cheapest and most common first, with how to test each. For jobs, give tools, steps and gotchas. Give torque and clearance values only when you are confident, and tell the owner to confirm against the workshop manual; never invent a number. "+PLATE+"Flag safety issues (brakes, fuel, chain, tires). If the owner attaches a photo of a part, identify it as best you can: name the part, say what it does on this bike, give your confidence, and list what to check to confirm (casting marks, stamped numbers, thread, size, mounting points). Only give a part number if you are confident; otherwise say to verify it in the parts book. If the photo is unclear, say what angle or close-up would help. The photo is only visible for that one message. Keep answers short enough to read in the garage on a phone. "+(recent?"Recent service log: "+recent+". ":"")+(stock?"Inventory on hand in the shop (oils, fluids, parts): "+stock+". When a job needs parts, say which of these they already have and what to buy, including oil type and amounts.":"")+(open?" Open punch list: "+open+".":"")}
+return "You are a master motorcycle shop mechanic with decades on British twins, specializing in the 1976 Triumph Bonneville T140V (744cc, Lucas electrics, Amal Concentric carbs, points ignition, oil-in-frame). The owner is working on their own bike. Be practical and direct like a good shop foreman: diagnose by asking one or two pointed questions, then give a ranked list of likely causes, cheapest and most common first, with how to test each. For jobs, give tools, steps and gotchas. Give torque and clearance values only when you are confident, and tell the owner to confirm against the workshop manual; never invent a number. "+PLATE+"Flag safety issues (brakes, fuel, chain, tires). If the owner attaches a photo of a part, identify it as best you can: name the part, say what it does on this bike, give your confidence, and list what to check to confirm (casting marks, stamped numbers, thread, size, mounting points). Only give a part number if you are confident; otherwise say to verify it in the parts book. If the photo is unclear, say what angle or close-up would help. The photo is only visible for that one message. Keep answers short enough to read in the garage on a phone. "+"Current odometer reading: "+fm(odo(),1)+" mi. "+(ZEN?"Zen mode is on. Treat logged Diagnosis entries as tests already run: build on them and do not re-suggest what they ruled out. When asked for a gumption check, list what is likely to drain momentum on this job (missing parts or tools, seized or stripped fasteners, setup errors, rushing, fatigue), check it against the inventory and punchlist, and say what to get or do first. When the owner says they are stuck, do not just offer another fix: ask what they have tried and what they have assumed, name the assumptions worth testing, and suggest stepping back or coming at it from another angle. Stay calm and brief. ":"")+(recent?"Recent service log: "+recent+". ":"")+(stock?"Inventory on hand in the shop (oils, fluids, parts): "+stock+". When a job needs parts, say which of these they already have and what to buy, including oil type and amounts.":"")+(open?" Open punchlist: "+open+".":"")}
 function errCopy(e){var c=(e&&e.code)||"unknown",m=(e&&e.message)||"";
 var t={not_granted:"Chat needs your permission to ask Claude. Reload and accept the prompt.",
 sampling_disabled:"Claude isn't available for this account or organization.",
 session_expired:"Sign in to Claude again, then try once more.",
 rate_limited:"You've hit a rate or usage limit. Wait a bit, then try again.",
-prompt_too_large:"There's too much context. Start a new chat, or trim your inventory and to-do list.",
+prompt_too_large:"There's too much context. Start a new chat, or trim your inventory and punchlist.",
 refused:"Claude couldn't answer that as written. Try rewording it.",
 empty_completion:"Claude sent back nothing. Try asking a little differently.",
 capability_disabled:"Chat isn't usable in this view. Try the page in a regular browser signed in to Claude.",
@@ -465,34 +547,46 @@ $("send").onclick=ask;
 SCHED.forEach(function(s){var o=document.createElement("option");o.value=s[0];o.textContent=s[0];$("lt").appendChild(o)});
 var o2=document.createElement("option");o2.value="Other repair";o2.textContent="Other repair";$("lt").appendChild(o2);
 $("ld").value=new Date().toISOString().slice(0,10);
-function odo(){return lg.reduce(function(m,e){return Math.max(m,+e.miles||0)},0)}
+var od=ld("bn_odo",{miles:43211.3,date:"2026-10-04"});
+function fm(n,t){var r=Math.round(n*10)/10;return r.toLocaleString("en-US",{minimumFractionDigits:t?1:0,maximumFractionDigits:1})}
+function odo(){return lg.reduce(function(m,e){return Math.max(m,+e.miles||0)},+od.miles||0)}
+function renderOdo(){$("od").value=od.miles;var top=lg.reduce(function(m,e){return Math.max(m,+e.miles||0)},0);
+$("odnote").textContent="Reading of "+fm(od.miles,1)+" mi on "+od.date+"."+(top>od.miles?" Your log has an entry at "+fm(top)+" mi, so the app counts from that.":"")}
+$("odsave").onclick=function(){var m=parseFloat($("od").value);if(isNaN(m)||m<0){$("od").focus();return}
+od={miles:Math.round(m*10)/10,date:new Date().toISOString().slice(0,10)};sv("bn_odo",od);renderOdo();renderLog();renderHome();$("lm").value=odo()};
 function renderLog(){
 var cur=odo(),h="";
 SCHED.forEach(function(s){
-var last=lg.filter(function(e){return e.task===s[0]}).sort(function(a,b){return b.miles-a.miles})[0];
-var st;
-if(!s[1])st='<span class="note">every ride</span>';
-else if(!last)st='<span class="tag late">no record</span>';
-else{var left=last.miles+s[1]-cur;st=left>=0?'<span class="tag ok">'+left+' mi left</span>':'<span class="tag late">'+(-left)+' mi over</span>'}
-h+='<div class="due"><span>'+esc(s[0])+' <small>'+(s[1]?"every "+s[1]+" mi":"")+'</small></span>'+st+'</div>'});
+var r=dueInfo(s,cur),mo=months(s[0]),st;
+if(!s[1]&&!mo)st='<span class="note">every ride</span>';
+else if(!r.rec)st='<span class="tag late">no record</span>';
+else{var t=[];if(r.mi!==null)t.push(tagMi(r.mi));if(r.days!==null)t.push(tagDays(r.days));st='<span style="text-align:right">'+t.join(" · ")+'</span>'}
+var iv=[];if(s[1])iv.push("every "+s[1]+" mi");if(mo)iv.push(mo+" mo");
+h+='<div class="due"><span>'+esc(s[0])+' <small>'+iv.join(" / ")+'</small></span>'+st+'</div>'});
 $("due").innerHTML=h;
 var hh=lg.slice().reverse().map(function(e,i){var idx=lg.length-1-i;
-return '<div class="card"><div class="due" style="border:0;padding:0"><strong>'+esc(e.task)+'</strong><span><small>'+esc(e.date)+' · '+esc(String(e.miles))+' mi</small><button class="x" data-i="'+idx+'" aria-label="Delete entry">×</button></span></div>'+(e.note?'<div>'+esc(e.note)+'</div>':'')+'</div>'}).join("");
+return '<div class="card"><div class="due" style="border:0;padding:0"><strong>'+esc(e.task)+'</strong><span><small>'+esc(e.date)+' · '+esc(String(e.miles))+' mi</small><button class="x" data-i="'+idx+'" aria-label="Delete entry">×</button></span></div>'+(e.note?'<div style="white-space:pre-wrap">'+esc(e.note)+'</div>':'')+(e.refl?'<div class="note zen" style="margin-top:4px"><i>Reflection: '+esc(e.refl)+'</i></div>':'')+'</div>'}).join("");
 $("hist").innerHTML=hh||'<p class="note">No entries yet. Log your last oil change to start the schedule.</p>';
 $("hist").querySelectorAll(".x").forEach(function(b){b.onclick=function(){var ix=+b.dataset.i,it=lg.splice(ix,1)[0];sv("bn_log",lg);renderLog();undo("entry",function(){lg.splice(ix,0,it);sv("bn_log",lg);renderLog()})}})}
 $("ladd").onclick=function(){
-var m=parseInt($("lm").value,10);if(isNaN(m)){$("lm").focus();return}
+var m=parseFloat($("lm").value);if(isNaN(m)){$("lm").focus();return}
 var note=$("ln").value.trim(),ui=$("lu").value,ua=parseFloat($("la").value);
 if(ui!==""&&ua>0&&pt[+ui]){var it=pt[+ui];it.qty=Math.max(0,Math.round((it.qty-ua)*100)/100);var us="Used "+ua+(it.unit&&it.unit!=="ea"?" "+it.unit:"")+" "+it.name;note=note?note+" ("+us+")":us;sv("bn_parts",pt);renderParts()}
-lg.push({date:$("ld").value,miles:m,task:$("lt").value,note:note});$("la").value="";
-sv("bn_log",lg);$("ln").value="";renderLog();lhint()};
+var rf=$("lr").value.trim();lg.push({date:$("ld").value,miles:m,task:$("lt").value,note:note,refl:rf||undefined});$("la").value="";$("lr").value="";
+sv("bn_log",lg);$("ln").value="";if(m>od.miles){od={miles:Math.round(m*10)/10,date:$("ld").value||new Date().toISOString().slice(0,10)};sv("bn_odo",od)}renderOdo();renderLog();lhint();$("lm").value=odo()};
+
+$("dadd").onclick=function(){var f=[["Symptom","dsym"],["Suspect","dhyp"],["Test","dtest"],["Result","dres"]],lines=[];
+if(!$("dsym").value.trim()){$("dsym").focus();return}
+f.forEach(function(x){var v=$(x[1]).value.trim();if(v)lines.push(x[0]+": "+v)});
+lg.push({date:$("ld").value||new Date().toISOString().slice(0,10),miles:odo(),task:"Diagnosis",note:lines.join("\n")});sv("bn_log",lg);
+f.forEach(function(x){$(x[1]).value=""});renderLog();lhint()};
 
 // Specs
 function renderSpecs(){
 $("mine").innerHTML=sp.length?"<table>"+sp.map(function(s,i){return "<tr><td>"+esc(s[0])+"</td><td>"+esc(s[1])+' <button class="x" data-i="'+i+'" aria-label="Delete">×</button></td></tr>'}).join("")+"</table>":'<span class="note">Nothing yet. Add torque values and settings once you have verified them.</span>';
 $("mine").querySelectorAll(".x").forEach(function(b){b.onclick=function(){var ix=+b.dataset.i,it=sp.splice(ix,1)[0];sv("bn_specs",sp);renderSpecs();undo("spec",function(){sp.splice(ix,0,it);sv("bn_specs",sp);renderSpecs()})}})}
 $("sadd").onclick=function(){var k=$("sk").value.trim(),v=$("sv").value.trim();if(!k||!v)return;sp.push([k,v]);sv("bn_specs",sp);$("sk").value=$("sv").value="";renderSpecs()};
-renderLog();renderSpecs();renderParts();renderTodo();
+renderBk();renderTm();renderOdo();$("lm").value=odo();renderLog();renderSpecs();renderParts();renderTodo();
 (function(){var id=ld("bn_active",null),t=th.filter(function(x){return x.id===id})[0]||th[0];if(t)openT(t);else newT();renderHome();lhint()})();
 })();
 </script>

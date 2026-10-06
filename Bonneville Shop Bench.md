@@ -14,8 +14,6 @@
 
 ## Latest chat
 
-Attached photoPhoto attached for the next question
-
 ## Odometer
 
 ## Add service entry
